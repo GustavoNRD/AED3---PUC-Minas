@@ -55,19 +55,18 @@ public class Arquivo<T extends Registro> {
     endereco = arquivo.readLong(); //leio o primeiro endereço de exclusão no cabeçalho 
     while(endereco != 0)
     {
-      arquivo.seek(endereco + 9); //pulo para o indicador de tamanho do registro
+      arquivo.seek(endereco + 1); //pulo para o indicador de tamanho do registro
       short tamanho = arquivo.readShort(); //lê o indicador de tamanho
 
       if(ba.length <= tamanho) //caso o novo registro caiba 
       {
+        long enderecoTmp = arquivo.readLong(); //pega o endereço do proximo registro excluido
+
         arquivo.write(ba); //escreve o novo registro
         indiceDireto.create(new ParIDEndereco(ultimoID, endereco)); //cria o indice 
 
         arquivo.seek(endereco); //volta para o lapide do registro não mais excluido
         arquivo.writeByte(' '); //limpa o lápide
-        long enderecoTmp = arquivo.readLong(); //pega o endereço do proximo registro excluido
-        arquivo.seek(endereco + 1); //volta ao ponteiro do registro novo
-        arquivo.writeLong(0); //limpa o ponteiro
 
         arquivo.seek(enderecoEndereco); // volta para o ponteiro anterior
         arquivo.writeLong(enderecoTmp); // escreve o endereço do proximo registro excluido
@@ -76,7 +75,7 @@ public class Arquivo<T extends Registro> {
       }
       else
       {
-        arquivo.seek(endereco + 1); // pula o lápide
+        arquivo.seek(endereco + 3); // pula o lápide e o indicador de tamanho
         enderecoEndereco = arquivo.getFilePointer(); // guarda o endereço do ponteiro 
         endereco = arquivo.readLong(); // lê o endereço para o proximo registro exlcuido
       }
@@ -86,7 +85,6 @@ public class Arquivo<T extends Registro> {
     
     endereco = arquivo.getFilePointer();
     arquivo.writeByte(' ');
-    arquivo.writeLong(0);
     arquivo.writeShort(ba.length);
     arquivo.write(ba);
 
@@ -94,19 +92,28 @@ public class Arquivo<T extends Registro> {
     return obj.getID();
   }
 
-  public T read(int id) throws Exception {
+  public T read(int id) throws Exception 
+  {
     T obj = construtor.newInstance();
     int tam;
+    byte lapide;
+
     long endereco = indiceDireto.read(id).getEndereco();
+    arquivo.seek(endereco);
     if (endereco > 0) {
-      arquivo.seek(endereco + 9); // pulando o campo lápide e o ponteiro de registros excluidos 
+      lapide = arquivo.readByte();
       tam = arquivo.readShort();
       byte[] ba = new byte[tam];
       arquivo.read(ba);
-      obj.fromByteArray(ba);
-      return obj;
-    } else
-      return null;
+      if (lapide == ' ') {
+        obj.fromByteArray(ba);
+        if (obj.getID() == id)
+          return obj;
+      } else {
+        return null;
+      }
+    }
+    return null;
   }
 
   public boolean delete(int id) throws Exception {
@@ -114,6 +121,8 @@ public class Arquivo<T extends Registro> {
     if (endereco > 0) {
       arquivo.seek(endereco);
       arquivo.writeByte('*');
+      arquivo.seek(endereco + 3);
+      arquivo.writeLong(0);
       indiceDireto.delete(id);
 
       long enderecoTmp; // endereço de registro excluido
@@ -124,7 +133,7 @@ public class Arquivo<T extends Registro> {
 
       while(enderecoTmp != 0) //se for 0 já não entra aqui
       {
-        arquivo.seek(enderecoTmp + 1); // pula o lápide
+        arquivo.seek(enderecoTmp + 3); // pula o lápide e o indicador de tamanho
         enderecoEndereco = arquivo.getFilePointer(); //guarda o local do ponteiro
         enderecoTmp = arquivo.readLong(); //lê o endereço
         if(enderecoTmp == 0) //se for 0 então 
@@ -147,11 +156,11 @@ public class Arquivo<T extends Registro> {
     T obj = construtor.newInstance();
     int tam;
     byte lapide;
-
     long endereco = indiceDireto.read(objAtualizado.getID()).getEndereco();
+
     if (endereco > 0) {
       // Lê o registro atual
-      arquivo.seek(endereco + 9); // pula o lápide e o ponteiro de exclusão
+      arquivo.seek(endereco + 1); // pula o lápide
       tam = arquivo.readShort();
       byte[] ba = new byte[tam];
       arquivo.read(ba);
@@ -163,60 +172,33 @@ public class Arquivo<T extends Registro> {
 
       // novo registro permanece no mesmo lugar
       if (tam2 <= tam) {
-        arquivo.seek(endereco + 11);
+        arquivo.seek(endereco + 3);
         arquivo.write(ba2);
         
       } 
       else 
       {
-        arquivo.seek(endereco);
-        arquivo.writeByte('*');
-      
-        long enderecoTmp; // endereço de registro excluido
-        long enderecoEndereco; // local onde esta o ponteiro
+        delete(objAtualizado.getID()); // deleta o registro anterior 
 
-        arquivo.seek(4);
-        enderecoEndereco = arquivo.getFilePointer(); //guarda o local do primeiro ponteiro
-        enderecoTmp = arquivo.readLong(); //lê o primeiro endereço
 
-        if(enderecoTmp == 0)
-        {
-          arquivo.seek(enderecoEndereco); //volta para o ponteiro 0
-          arquivo.writeLong(endereco); // escreve o endereço 
-        }
-        else
-        {
-          while(enderecoTmp != 0) //se for 0 já não entra aqui
-          {
-            arquivo.seek(enderecoTmp + 1); // pula o lápide
-            enderecoEndereco = arquivo.getFilePointer(); //guarda o local do ponteiro
-            enderecoTmp = arquivo.readLong(); //lê o endereço
-            if(enderecoTmp == 0) //se for 0 então 
-            {
-              arquivo.seek(enderecoEndereco); //volta para o endereço
-              arquivo.writeLong(endereco); //escreve no ponteiro o local do novo registro excluido
-            } //se não, continua o loop
-          }
-        }
-
+        long enderecoEndereco;
+        long enderecoTmp;
         arquivo.seek(4);
         enderecoEndereco = arquivo.getFilePointer(); //salvo o local onde foi lido o endereço
-        endereco = arquivo.readLong(); //leio o primeiro endereço de exclusão no cabeçalho 
-        while(endereco != 0)
+        enderecoTmp = arquivo.readLong(); //leio o primeiro endereço de exclusão no cabeçalho 
+        while(enderecoTmp != 0)
         {
-          arquivo.seek(endereco + 9); //pulo para o indicador de tamanho do registro
+          arquivo.seek(enderecoTmp + 1); //pulo para o indicador de tamanho do registro
           short tamanho = arquivo.readShort(); //lê o indicador de tamanho
     
           if(ba2.length <= tamanho) //caso o novo registro caiba 
           {
-            arquivo.write(ba2); //escreve o novo registro
-            indiceDireto.update(new ParIDEndereco(objAtualizado.getID(), endereco)); //atualiza o indice 
-    
-            arquivo.seek(endereco); //volta para o lapide do registro não mais excluido
-            arquivo.writeByte(' '); //limpa o lápide
             long enderecoTmp2 = arquivo.readLong(); //pega o endereço do proximo registro excluido
-            arquivo.seek(endereco + 1); //volta ao ponteiro do registro novo
-            arquivo.writeLong(0); //limpa o ponteiro
+            arquivo.write(ba2); //escreve o novo registro
+            indiceDireto.update(new ParIDEndereco(objAtualizado.getID(), enderecoTmp)); //atualiza o indice 
+
+            arquivo.seek(enderecoTmp); //volta para o lapide do registro não mais excluido
+            arquivo.writeByte(' '); //limpa o lápide
     
             arquivo.seek(enderecoEndereco); // volta para o ponteiro anterior
             arquivo.writeLong(enderecoTmp2); // escreve o endereço do proximo registro excluido
@@ -225,20 +207,19 @@ public class Arquivo<T extends Registro> {
           }
           else
           {
-            arquivo.seek(endereco + 1); // pula o lápide
+            arquivo.seek(endereco + 3); // pula o lápide e o indicador de tamanho
             enderecoEndereco = arquivo.getFilePointer(); // guarda o endereço do ponteiro 
-            endereco = arquivo.readLong(); // lê o endereço para o proximo registro exlcuido
+            enderecoTmp = arquivo.readLong(); // lê o endereço para o proximo registro exlcuido
           }
         }
 
 
         arquivo.seek(arquivo.length());
-        endereco = arquivo.getFilePointer();
+        enderecoTmp = arquivo.getFilePointer();
         arquivo.writeByte(' ');
-        arquivo.writeLong(0);
         arquivo.writeShort(ba2.length);
         arquivo.write(ba2);
-        indiceDireto.create(new ParIDEndereco(objAtualizado.getID(), endereco));
+        indiceDireto.create(new ParIDEndereco(objAtualizado.getID(), enderecoTmp));
       }
 
 
