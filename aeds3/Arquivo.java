@@ -61,6 +61,7 @@ public class Arquivo<T extends Registro> {
       if(ba.length <= tamanho) //caso o novo registro caiba 
       {
         long enderecoTmp = arquivo.readLong(); //pega o endereço do proximo registro excluido
+        arquivo.seek(endereco + 3);
 
         arquivo.write(ba); //escreve o novo registro
         indiceDireto.create(new ParIDEndereco(ultimoID, endereco)); //cria o indice 
@@ -191,9 +192,10 @@ public class Arquivo<T extends Registro> {
           arquivo.seek(enderecoTmp + 1); //pulo para o indicador de tamanho do registro
           short tamanho = arquivo.readShort(); //lê o indicador de tamanho
     
-          if(ba2.length <= tamanho) //caso o novo registro caiba 
+          if(tam2 <= tamanho) //caso o novo registro caiba 
           {
             long enderecoTmp2 = arquivo.readLong(); //pega o endereço do proximo registro excluido
+            arquivo.seek(enderecoTmp + 3);
             arquivo.write(ba2); //escreve o novo registro
             indiceDireto.update(new ParIDEndereco(objAtualizado.getID(), enderecoTmp)); //atualiza o indice 
 
@@ -207,7 +209,7 @@ public class Arquivo<T extends Registro> {
           }
           else
           {
-            arquivo.seek(endereco + 3); // pula o lápide e o indicador de tamanho
+            arquivo.seek(enderecoTmp + 3); // pula o lápide e o indicador de tamanho
             enderecoEndereco = arquivo.getFilePointer(); // guarda o endereço do ponteiro 
             enderecoTmp = arquivo.readLong(); // lê o endereço para o proximo registro exlcuido
           }
