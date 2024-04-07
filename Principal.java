@@ -5,6 +5,8 @@ public class Principal {
   public static void main(String[] args) {
 
     new File("dados/livros.db").delete();
+    new File("dados/livros_isbn.hash_d.db").delete();
+    new File("dados/livros_isnb.hash_c.db").delete();
     new File("dados/livros.hash_d.db").delete();
     new File("dados/livros.hash_c.db").delete();
 
@@ -20,56 +22,53 @@ public class Principal {
     try {
       arqLivros = new ArquivoLivros();
 
-      id1 = arqLivros.create(l1);
-      l1.setID(id1);
-      System.out.println("Livro de ID " + id1 + " incluído");
+      // id1 = arqLivros.create(l1);
+      // l1.setID(id1);
+      // System.out.println("Livro de ID " + id1 + " incluído");
 
-      id2 = arqLivros.create(l2);
-      l2.setID(id2);
-      System.out.println("Livro de ID " + id2 + " incluído");
+      // id2 = arqLivros.create(l2);
+      // l2.setID(id2);
+      // System.out.println("Livro de ID " + id2 + " incluído");
 
-      id3 = arqLivros.create(l3);
-      l3.setID(id3);
-      System.out.println("Livro de ID " + id3 + " incluído");
+      // id3 = arqLivros.create(l3);
+      // l3.setID(id3);
+      // System.out.println("Livro de ID " + id3 + " incluído");
 
-      id4 = arqLivros.create(l4);
-      l4.setID(id4);
-      System.out.println("Livro de ID " + id4 + " incluído");
+      // id4 = arqLivros.create(l4);
+      // l4.setID(id4);
+      // System.out.println("Livro de ID " + id4 + " incluído");
 
-      id5 = arqLivros.create(l5);
-      l5.setID(id5);
-      System.out.println("Livro de ID " + id5 + " incluído");
+      // id5 = arqLivros.create(l5);
+      // l5.setID(id5);
+      // System.out.println("Livro de ID " + id5 + " incluído");
 
-      System.out.println(arqLivros.read(3));
-      System.out.println(arqLivros.read(1));
-      System.out.println(arqLivros.read(5));
+      // System.out.println(arqLivros.read(3));
+      // System.out.println(arqLivros.read(1));
+      // System.out.println(arqLivros.read(5));
 
-      if(arqLivros.delete(id1))
-      System.out.println("Livro de ID " + id1 + " excluído");
+      // if(arqLivros.delete(id1))
+      // System.out.println("Livro de ID " + id1 + " excluído");
 
-      if(arqLivros.delete(id5))
-      System.out.println("Livro de ID " + id5 + " excluído");
+      // id6 = arqLivros.create(l6);
+      // l6.setID(id6);
+      // System.out.println("Livro de ID " + id6 + " incluído");
 
-      id6 = arqLivros.create(l6);
-      l6.setID(id6);
-      System.out.println("Livro de ID " + id6 + " incluído");
+      // if(arqLivros.delete(id3))
+      // System.out.println("Livro de ID " + id3 + " excluído");
 
-      if(arqLivros.delete(id3))
-      System.out.println("Livro de ID " + id3 + " excluído");
-
-      l5.setTitulo("Violeta Para Sempre");
-      if (arqLivros.update(l5))
-      System.out.println("Livro de ID " + l5.getID() + " alterado");
-      else
-      System.out.println("Livro de ID " + l5.getID() + " não encontrado");
+      // l5.setTitulo("Violeta Para Sempre");
+      // if (arqLivros.update(l5))
+      // System.out.println("Livro de ID " + l5.getID() + " alterado");
+      // else
+      // System.out.println("Livro de ID " + l5.getID() + " não encontrado");
 
 
-
+      Menu.executarMenu(arqLivros);
 
       //System.out.println(arqLivros.readISBN("9788584290483"));
       //System.out.println(arqLivros.readISBN("9788582714911"));
 
-      // System.out.println("Exclusáo do livro 2");
+      // System.out.pri;ntln("Exclusáo do livro 2");
       // if (arqLivros.delete(id2))
       // System.out.println("Livro de ID " + id2 + "excluído");
       // else
