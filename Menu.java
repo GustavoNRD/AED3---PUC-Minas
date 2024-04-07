@@ -26,16 +26,16 @@ public class Menu {
         case 1:
           Livro novoLivro = criaLivro(scanner);
           arqLivros.create(novoLivro);
+          System.out.println("Livro criado com sucesso.");
           break;
         case 2:
           deletaLivro(scanner, arqLivros);
           break;
         case 3:
-          // Executar ação de atualizar um livro
+          atualizarLivro(scanner, arqLivros);
           break;
         case 4:
-        //funcao vai ler o isbn e mostrar os atributos do livro
-          //lerLivro(scanner, arqLivros);
+          lerLivro(scanner, arqLivros);
           break;
         case 5:
           arqLivros.reorganizar();
@@ -51,7 +51,7 @@ public class Menu {
     } while (opcao != -1);
   }
 
-  public static Livro criaLivro(Scanner scanner) {
+  static Livro criaLivro(Scanner scanner) {
     System.out.println("====== Criar Livro ======");
     String isbn;
     //pega um isbn valido
@@ -78,11 +78,10 @@ public class Menu {
     }
 
     Livro novoLivro = new Livro(-1, isbn, nome, preco);
-    System.out.println("Livro criado com sucesso.");
     return novoLivro;
   }
 
-  public static void deletaLivro(Scanner scanner, ArquivoLivros arqLivros) throws Exception {
+  static void deletaLivro(Scanner scanner, ArquivoLivros arqLivros) throws Exception {
     System.out.println("====== Deletar Livro ======");
     System.out.print("Digite o ISBN (13 digitos) do livro a ser deletado: ");
     String isbn = scanner.next();
@@ -101,17 +100,49 @@ public class Menu {
     
     
   }
-  public static void atualizarLivro(Scanner scanner, ArquivoLivros arqLivros) throws Exception {
+  static void atualizarLivro(Scanner scanner, ArquivoLivros arqLivros) throws Exception {
     System.out.println("====== Atualizar Livro ======");
     System.out.print("Digite o ISBN do livro a ser atualizado: ");
     String isbn = scanner.next();
+    scanner.nextLine();
 
-    int id = arqLivros.readISBN(isbn).getID();
+    try{
+      Livro antigo = arqLivros.readISBN(isbn);
 
-    if(arqLivros.delete(id))
-      System.out.println("Livro deletado com sucesso.");
-    else 
-      System.out.println("Falha ao deletar, tente novamente.");
-    
+      System.out.print("Digite o novo título (deixe em branco para manter o mesmo): ");
+      String novoTitulo = scanner.nextLine();
+      if (novoTitulo.isEmpty()) {
+          novoTitulo = antigo.getTitulo();
+      }
+
+      System.out.print("Digite o novo preço (deixe em branco para manter o mesmo): ");
+      String novoPrecoInput = scanner.nextLine();
+      float novoPreco;
+      if (novoPrecoInput.isEmpty()) {
+          novoPreco = antigo.getPreco();
+      } else {
+          novoPreco = Float.parseFloat(novoPrecoInput);
+      }
+
+      Livro novo = new Livro(antigo.getID(), isbn, novoTitulo, novoPreco);
+      arqLivros.update(novo);
+    }catch(Exception e){
+      System.out.println("O ISBN digitado nao foi encontrado: " + isbn + " !\n");
+    }
   }
+
+  static void lerLivro(Scanner scanner, ArquivoLivros arqLivros){
+    System.out.println("====== Ver Livro ======");
+    System.out.print("Digite o ISBN do livro a desejado: ");
+    String isbn = scanner.next();
+    scanner.nextLine();
+    try{
+      Livro livro = arqLivros.readISBN(isbn);
+      System.out.println(livro);
+      
+    }catch(Exception e){
+      System.out.println("O ISBN digitado nao foi encontrado: " + isbn + " !\n");
+    }
+  }
+
 }
