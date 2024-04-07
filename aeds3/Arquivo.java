@@ -56,9 +56,9 @@ public class Arquivo<T extends Registro> {
     while(endereco != 0)
     {
       arquivo.seek(endereco + 1); //pulo para o indicador de tamanho do registro
-      short tamanho = arquivo.readShort(); //lê o indicador de tamanho
-
-      if(ba.length <= tamanho) //caso o novo registro caiba 
+      float tamanho = arquivo.readShort(); //lê o indicador de tamanho
+      float length = ba.length;
+      if(length <= tamanho && length >= (tamanho * 0.75)) //caso o novo registro caiba 
       {
         long enderecoTmp = arquivo.readLong(); //pega o endereço do proximo registro excluido
         arquivo.seek(endereco + 3);
@@ -190,14 +190,14 @@ public class Arquivo<T extends Registro> {
         while(enderecoTmp != 0)
         {
           arquivo.seek(enderecoTmp + 1); //pulo para o indicador de tamanho do registro
-          short tamanho = arquivo.readShort(); //lê o indicador de tamanho
-    
-          if(tam2 <= tamanho) //caso o novo registro caiba 
+          float tamanho = arquivo.readShort(); //lê o indicador de tamanho
+          float tam2aux = tam2;
+          if(tam2aux <= tamanho && tam2aux >= tamanho * 0.75) //caso o novo registro caiba 
           {
             long enderecoTmp2 = arquivo.readLong(); //pega o endereço do proximo registro excluido
             arquivo.seek(enderecoTmp + 3);
             arquivo.write(ba2); //escreve o novo registro
-            indiceDireto.update(new ParIDEndereco(objAtualizado.getID(), enderecoTmp)); //atualiza o indice 
+            indiceDireto.create(new ParIDEndereco(objAtualizado.getID(), enderecoTmp)); 
 
             arquivo.seek(enderecoTmp); //volta para o lapide do registro não mais excluido
             arquivo.writeByte(' '); //limpa o lápide
@@ -242,6 +242,9 @@ public class Arquivo<T extends Registro> {
 
     // Lê o cabeçalho
     byte[] ba_cabecalho = new byte[TAM_CABECALHO];
+    arquivo.seek(4);
+    arquivo.writeLong(0);
+    
     arquivo.seek(0);
     arquivo.read(ba_cabecalho);
 
@@ -493,7 +496,7 @@ public class Arquivo<T extends Registro> {
 
     arquivo.close();
     new File("dados/" + nomeEntidade + ".db").delete();
-    DataOutputStream ordenado = new DataOutputStream(new FileOutputStream(nomeEntidade));
+    DataOutputStream ordenado = new DataOutputStream(new FileOutputStream("dados/" + nomeEntidade+ ".db"));
     ordenado.write(ba_cabecalho);
 
     indiceDireto.close();
