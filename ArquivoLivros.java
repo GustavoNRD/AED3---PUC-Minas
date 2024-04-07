@@ -40,11 +40,13 @@ public class ArquivoLivros extends Arquivo<Livro> {
   public boolean update(Livro novoLivro) throws Exception {
     Livro livroAntigo = super.read(novoLivro.getID());
     if (livroAntigo != null) {
-      if (livroAntigo.getIsbn().compareTo(novoLivro.getIsbn()) != 0) {
-        indiceIndiretoISBN.delete(ParIsbnId.hashIsbn(livroAntigo.getIsbn()));
-        indiceIndiretoISBN.create(new ParIsbnId(novoLivro.getIsbn(), novoLivro.getID()));
-      }
-      return super.update(novoLivro);
+      // if (livroAntigo.getIsbn().compareTo(novoLivro.getIsbn()) != 0) {
+      
+      // }
+      super.update(novoLivro);
+      indiceIndiretoISBN.delete(ParIsbnId.hashIsbn(livroAntigo.getIsbn()));
+      indiceIndiretoISBN.create(new ParIsbnId(novoLivro.getIsbn(), novoLivro.getID()));
+      return true;
     }
     return false;
   }
